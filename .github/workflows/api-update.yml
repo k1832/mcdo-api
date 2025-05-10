@@ -1,0 +1,67 @@
+name: Update User Count
+
+on:
+  # Runs every day at 5:17 pm in UTC (2:17 am in Japan)
+  schedule:
+    - cron: '17 17 * * *'
+
+  # Enable manual triggers
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+      tags:
+        description: 'Test scenario tags'
+        required: false
+        type: boolean
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+
+jobs:
+  update-count:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Scrape user count
+        run: |
+          python3 ./script/get-store-location.py
+
+      - name: Commit user count change
+        id: check_changes
+        run: |
+          set +e
+          git diff --quiet
+          if [[ $? -eq 1 ]]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email 'keyz+github-actions[bot]@users.noreply.github.com'
+            git add .
+            git commit -m "[Commit by bot] Update user count"
+          else
+            echo "The number of total active users hasn't changed."
+          fi
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
