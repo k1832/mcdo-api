@@ -1,4 +1,4 @@
-name: Update User Count
+name: Update store location list
 
 on:
   # Runs every day at 5:17 pm in UTC (2:17 am in Japan)
@@ -42,11 +42,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Scrape user count
+      - name: Scrape store location list
         run: |
           python3 ./script/get-store-location.py
 
-      - name: Commit user count change
+      - name: Commit store location list change
         id: check_changes
         run: |
           set +e
@@ -55,9 +55,9 @@ jobs:
             git config user.name 'github-actions[bot]'
             git config user.email 'keyz+github-actions[bot]@users.noreply.github.com'
             git add .
-            git commit -m "[Commit by bot] Update user count"
+            git commit -m "[Commit by bot] Update the store location list."
           else
-            echo "The number of total active users hasn't changed."
+            echo "No change in the store location list."
           fi
 
       - name: Push changes
