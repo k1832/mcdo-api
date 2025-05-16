@@ -12,16 +12,19 @@ def main():
     orig_res_json = json.loads(orig_res.text)
 
     necessary_store_info = []
-    necessary_store_fields = ("id", "name", "latitude", "longitude", "address")
+    necessary_store_fields = ("name", "latitude", "longitude", "address")
     for orig_store in orig_res_json:
-        store = {}
+        store = {"id": ""} # Add the default ID so that `id` comes first in JSON
         for field in necessary_store_fields:
             if field not in orig_store:
                 # TODO(k1832): Add an error log
                 break
-            else:
-                store[field] = orig_store[field]
+
+            store[field] = orig_store[field]
         else:
+            # The original data contains `id` too, however, it could change
+            # over time. So use this format to maintain the compatibility.
+            store["id"] = f"{store['latitude']}+{store['longitude']}"
             necessary_store_info.append(store)
 
     print(f"Original length: {len(orig_res_json)}")
