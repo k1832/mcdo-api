@@ -3,6 +3,10 @@ import json
 import os
 import requests
 
+import geohash
+
+GEOHASH_PRECISION = 8
+
 def main():
     """Get McDonald's store locations ing page to get the total number of active users."""
     API_URL = "https://map.mcdonalds.co.jp/api/poi"
@@ -22,9 +26,13 @@ def main():
 
             store[field] = orig_store[field]
         else:
+            # ID format is: `{geohash}+{store name}`
             # The original data contains `id` too, however, it could change
             # over time. So use this format to maintain the compatibility.
-            store["id"] = f"{store['latitude']}+{store['longitude']}"
+            # The store name is added because it's possible that there are
+            # multiple stores within the same geohash.
+            geohash_val = geohash.encode(store["latitude"], store["longitude"], GEOHASH_PRECISION)
+            store["id"] = f"{geohash_val}+{store['name']}"
             necessary_store_info.append(store)
 
     print(f"Original length: {len(orig_res_json)}")
